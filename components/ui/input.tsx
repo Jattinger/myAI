@@ -38,7 +38,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             console.log("🛑 Voice recording ended.");
           };
 
-          recognition.onresult = (event) => {
+          // ✅ Fix: Explicitly define event type
+          recognition.onresult = (event: SpeechRecognitionEvent) => {
             console.log("🎤 Speech Event Triggered:", event);
             if (event.results.length > 0) {
               const transcript = event.results[event.results.length - 1][0].transcript.trim();
@@ -50,7 +51,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             }
           };
 
-          recognition.onerror = (event) => {
+          recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
             console.error("❌ Speech Recognition Error:", event);
           };
 
