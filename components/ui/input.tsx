@@ -6,12 +6,12 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 // ✅ Ensure TypeScript recognizes SpeechRecognition and SpeechRecognitionEvent
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
   }
 }
 
-interface SpeechRecognition extends EventTarget {
+interface SpeechRecognitionInstance extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
   lang: string;
@@ -26,7 +26,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     const [isListening, setIsListening] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement | null>(null); 
-    const [recognition, setRecognition] = React.useState<SpeechRecognition | null>(null);
+    const [recognition, setRecognition] = React.useState<SpeechRecognitionInstance | null>(null);
 
     // ✅ Ensure `window` is accessed only on the client side
     React.useEffect(() => {
@@ -34,7 +34,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         const SpeechRecognition =
           window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
-          const recognitionInstance: SpeechRecognition = new SpeechRecognition();
+          const recognitionInstance: SpeechRecognitionInstance = new SpeechRecognition();
           recognitionInstance.continuous = false;
           recognitionInstance.lang = "en-US";
           recognitionInstance.interimResults = false;
@@ -75,26 +75,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             if (typeof ref === "function") {
               ref(el);
             } else if (ref && "current" in ref) {
-              (ref as React.MutableRefObject<HTMLInputElement | null>).current = el;
-            }
-            inputRef.current = el; 
-          }}
-          {...props}
-        />
-
-        {/* Voice Input Button */}
-        <button
-          type="button"
-          onClick={handleVoiceInput}
-          className="absolute right-3 p-2 bg-gray-200 rounded-full hover:bg-gray-300 focus:outline-none"
-        >
-          🎤
-        </button>
-      </div>
-    );
-  }
-);
-
-Input.displayName = "Input";
-
-export { Input };
+              (ref as React.MutableRefObject<H
