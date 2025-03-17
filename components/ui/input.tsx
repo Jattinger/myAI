@@ -1,16 +1,13 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
-// ✅ Import SpeechRecognition types from `@types/dom-speech-recognition`
-import type { SpeechRecognition, SpeechRecognitionEvent } from "dom-speech-recognition";
-
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-// ✅ Fix: Declare SpeechRecognition correctly
+// ✅ Fix: Define `SpeechRecognition` correctly for TypeScript
 declare global {
   interface Window {
-    SpeechRecognition?: new () => SpeechRecognition;
-    webkitSpeechRecognition?: new () => SpeechRecognition;
+    SpeechRecognition?: typeof window.SpeechRecognition;
+    webkitSpeechRecognition?: typeof window.webkitSpeechRecognition;
   }
 }
 
@@ -41,7 +38,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             console.log("🛑 Voice recording ended.");
           };
 
-          recognition.onresult = (event: SpeechRecognitionEvent) => {
+          recognition.onresult = (event) => {
             console.log("🎤 Speech Event Triggered:", event);
             if (event.results.length > 0) {
               const transcript = event.results[event.results.length - 1][0].transcript.trim();
