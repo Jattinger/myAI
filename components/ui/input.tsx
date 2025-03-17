@@ -3,7 +3,6 @@ import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-// ✅ Ensure TypeScript recognizes SpeechRecognition and SpeechRecognitionEvent
 declare global {
   interface Window {
     SpeechRecognition: any;
@@ -25,10 +24,9 @@ interface SpeechRecognitionInstance extends EventTarget {
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     const [isListening, setIsListening] = React.useState(false);
-    const inputRef = React.useRef<HTMLInputElement | null>(null); 
-    const [recognition, setRecognition] = React.useState<SpeechRecognitionInstance | null>(null);
+    const inputRef = React.useRef<HTMLInputElement | null>(null);
+    const recognitionRef = React.useRef<SpeechRecognitionInstance | null>(null);
 
-    // ✅ Ensure `window` is accessed only on the client side
     React.useEffect(() => {
       if (typeof window !== "undefined") {
         const SpeechRecognition =
@@ -42,25 +40,28 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           recognitionInstance.onstart = () => setIsListening(true);
           recognitionInstance.onend = () => setIsListening(false);
 
-          // ✅ Fix: Ensure speech is stored in the input field
+          // ✅ Fix: Capture and store recognized speech correctly
           recognitionInstance.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            console.log("Recognized Speech:", transcript); // Debugging output
+            console.log("Speech Event Triggered", event);
+            if (event.results && event.results.length > 0) {
+              const transcript = event.results[0][0].transcript;
+              console.log("Recognized Speech:", transcript);
 
-            if (inputRef.current) {
-              inputRef.current.value = transcript; // ✅ Store speech data in input field
-              inputRef.current.dispatchEvent(new Event("input", { bubbles: true })); // ✅ Ensure React recognizes the input change
+              if (inputRef.current) {
+                inputRef.current.value = transcript; // ✅ Store speech data in input field
+                inputRef.current.dispatchEvent(new Event("input", { bubbles: true })); // ✅ Ensure React detects change
+              }
             }
           };
 
-          setRecognition(recognitionInstance);
+          recognitionRef.current = recognitionInstance;
         }
       }
-    }, []); // ✅ Runs only once on mount (client-side)
+    }, []);
 
     const handleVoiceInput = () => {
-      if (recognition) {
-        recognition.start();
+      if (recognitionRef.current) {
+        recognitionRef.current.start();
       } else {
         alert("Speech recognition is not supported in this browser.");
       }
@@ -81,7 +82,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             } else if (ref && "current" in ref) {
               (ref as React.MutableRefObject<HTMLInputElement | null>).current = el;
             }
-            inputRef.current = el; 
+            inputRef.current = el;
           }}
           {...props}
         />
@@ -101,5 +102,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = "Input";
 
-// ✅ Fix: Ensure export statement is correctly formatted
-export { Input }; // ✅ Added missing closing bracket or comma
+export { Input };
