@@ -5,8 +5,8 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 
 declare global {
   interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
   }
 }
 
@@ -14,7 +14,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     const [isListening, setIsListening] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement | null>(null);
-    const recognitionRef = React.useRef<any>(null);
+    const recognitionRef = React.useRef<SpeechRecognition | null>(null);
 
     React.useEffect(() => {
       if (typeof window !== "undefined") {
@@ -22,10 +22,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
           const recognition = new SpeechRecognition();
-          recognition.continuous = false; // 🔥 Allow processing each phrase separately
+          recognition.continuous = false;
           recognition.lang = "en-US";
-          recognition.interimResults = true; // 🔥 Capture words while speaking instead of waiting for silence
-          recognition.maxAlternatives = 1; // 🔥 Only take the best match
+          recognition.interimResults = true;
+          recognition.maxAlternatives = 1;
 
           recognition.onstart = () => {
             setIsListening(true);
@@ -35,15 +35,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           recognition.onend = () => {
             setIsListening(false);
             console.log("🛑 Voice recording ended.");
-            // 🔥 Restart recognition to keep it active
-            setTimeout(() => {
-              if (recognitionRef.current) {
-                recognitionRef.current.start();
-              }
-            }, 500);
           };
 
-          recognition.onresult = (event) => {
+          // ✅ Fix: Explicitly define event type as SpeechRecognitionEvent
+          recognition.onresult = (event: SpeechRecognitionEvent) => {
             console.log("🎤 Speech Event Triggered:", event);
             if (event.results.length > 0) {
               const transcript = event.results[event.results.length - 1][0].transcript.trim();
@@ -56,7 +51,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           };
 
           recognition.onerror = (event) => {
-            console.error("❌ Speech Recognition Error:", event.error);
+            console.error("❌ Speech Recognition Error:", event);
           };
 
           recognitionRef.current = recognition;
