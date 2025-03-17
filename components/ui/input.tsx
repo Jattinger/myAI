@@ -6,16 +6,20 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 // ✅ Ensure TypeScript recognizes SpeechRecognition and SpeechRecognitionEvent
 declare global {
   interface Window {
-    SpeechRecognition: any;
-    webkitSpeechRecognition: any;
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
   }
-  interface SpeechRecognitionEvent {
-    results: {
-      [index: number]: {
-        [index: number]: { transcript: string };
-      };
-    };
-  }
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onresult: ((event: { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void) | null;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -30,7 +34,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         const SpeechRecognition =
           window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
-          const recognitionInstance = new SpeechRecognition();
+          const recognitionInstance: SpeechRecognition = new SpeechRecognition();
           recognitionInstance.continuous = false;
           recognitionInstance.lang = "en-US";
           recognitionInstance.interimResults = false;
@@ -38,7 +42,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           recognitionInstance.onstart = () => setIsListening(true);
           recognitionInstance.onend = () => setIsListening(false);
 
-          recognitionInstance.onresult = (event: any) => {
+          recognitionInstance.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
             if (inputRef.current) {
               inputRef.current.value = transcript; // Set recognized speech as input
