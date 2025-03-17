@@ -8,9 +8,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const [isListening, setIsListening] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
 
-    // Check if the browser supports speech recognition
+    // ✅ TypeScript Fix: Define SpeechRecognition
     const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 
@@ -22,7 +22,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
 
-      recognition.onresult = (event) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         if (inputRef.current) {
           inputRef.current.value = transcript; // Set recognized speech as input
