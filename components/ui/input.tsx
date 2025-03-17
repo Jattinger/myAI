@@ -21,7 +21,7 @@ declare global {
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     const [isListening, setIsListening] = React.useState(false);
-    const inputRef = React.useRef<HTMLInputElement>(null);
+    const inputRef = React.useRef<HTMLInputElement | null>(null); // ✅ Fixed Ref Type
 
     // ✅ Ensure TypeScript recognizes SpeechRecognition
     const SpeechRecognition =
@@ -64,8 +64,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           )}
           ref={(el) => {
             if (typeof ref === "function") ref(el);
-            else if (ref) ref.current = el;
-            inputRef.current = el;
+            else if (ref && "current" in ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = el;
+            inputRef.current = el; // ✅ Fix: Assign inputRef safely
           }}
           {...props}
         />
