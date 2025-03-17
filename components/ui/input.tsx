@@ -3,14 +3,29 @@ import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
+// ✅ Define SpeechRecognition types for TypeScript
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+  interface SpeechRecognitionEvent {
+    results: {
+      [index: number]: {
+        [index: number]: { transcript: string };
+      };
+    };
+  }
+}
+
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     const [isListening, setIsListening] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement>(null);
 
-    // ✅ TypeScript Fix: Define SpeechRecognition
+    // ✅ Ensure TypeScript recognizes SpeechRecognition
     const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      window.SpeechRecognition || window.webkitSpeechRecognition;
 
     const recognition = SpeechRecognition ? new SpeechRecognition() : null;
 
@@ -22,7 +37,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         if (inputRef.current) {
           inputRef.current.value = transcript; // Set recognized speech as input
