@@ -95,9 +95,12 @@ export async function POST(req: Request) {
       includeMetadata: true, // Ensure metadata (text) is included
     });
 
-    // Process retrieved messages and merge them into chat history
-    const history = pastMessages.matches.map((m) => m.metadata.text) || [];
-    chat.messages = [...history, ...chat.messages]; // Merge history with new messages
+    // ✅ FIX: Ensure metadata is defined before accessing text
+    const history = pastMessages.matches
+      .map((m) => m.metadata?.text)
+      .filter((text) => text !== undefined); // Remove undefined values
+
+    chat.messages = [...history.map((text) => ({ role: "assistant", content: text })), ...chat.messages];
 
     // Store the latest message in Pinecone for future retrieval
     await storeMessageInPinecone(lastMessage);
