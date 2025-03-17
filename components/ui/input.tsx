@@ -3,7 +3,11 @@ import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-// ✅ Fix: Declare `SpeechRecognition` without circular reference
+// ✅ Fix: Declare `SpeechRecognitionEvent` manually
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+
 declare global {
   interface Window {
     SpeechRecognition?: any;
@@ -38,7 +42,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             console.log("🛑 Voice recording ended.");
           };
 
-          // ✅ Fix: Explicitly define event type
+          // ✅ Fix: Use manually declared `SpeechRecognitionEvent`
           recognition.onresult = (event: SpeechRecognitionEvent) => {
             console.log("🎤 Speech Event Triggered:", event);
             if (event.results.length > 0) {
