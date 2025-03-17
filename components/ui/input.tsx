@@ -62,6 +62,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       }
     };
 
+    // ✅ Make sure the function correctly RETURNS JSX
     return (
       <div className="relative flex items-center w-full">
         {/* Input Field */}
@@ -75,4 +76,26 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             if (typeof ref === "function") {
               ref(el);
             } else if (ref && "current" in ref) {
-              (ref as React.MutableRefObject<H
+              (ref as React.MutableRefObject<HTMLInputElement | null>).current = el;
+            }
+            inputRef.current = el; 
+          }}
+          {...props}
+        />
+
+        {/* Voice Input Button */}
+        <button
+          type="button"
+          onClick={handleVoiceInput}
+          className="absolute right-3 p-2 bg-gray-200 rounded-full hover:bg-gray-300 focus:outline-none"
+        >
+          🎤
+        </button>
+      </div>
+    );
+  }
+);
+
+Input.displayName = "Input";
+
+export { Input };
