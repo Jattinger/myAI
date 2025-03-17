@@ -18,7 +18,29 @@ interface SpeechRecognitionInstance extends EventTarget {
   stop(): void;
   onstart: (() => void) | null;
   onend: (() => void) | null;
-  onresult: ((event: { results: { [index: number]: { [index: number]: { transcript: string } } } }) => void) | null;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+}
+
+// ✅ Fix: Explicitly define `SpeechRecognitionEvent` results
+interface SpeechRecognitionEvent {
+  results: SpeechRecognitionResultList;
+}
+
+// ✅ Fix: Explicitly define `SpeechRecognitionResultList`
+interface SpeechRecognitionResultList {
+  length: number;
+  [index: number]: SpeechRecognitionResult;
+}
+
+// ✅ Fix: Explicitly define `SpeechRecognitionResult`
+interface SpeechRecognitionResult {
+  length: number;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+// ✅ Fix: Explicitly define `SpeechRecognitionAlternative`
+interface SpeechRecognitionAlternative {
+  transcript: string;
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
@@ -40,10 +62,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           recognitionInstance.onstart = () => setIsListening(true);
           recognitionInstance.onend = () => setIsListening(false);
 
-          // ✅ Fix: Capture and store recognized speech correctly
+          // ✅ Fix: TypeScript now properly recognizes event.results.length
           recognitionInstance.onresult = (event) => {
             console.log("Speech Event Triggered", event);
-            if (event.results && event.results.length > 0) {
+            if (event.results?.length > 0) {
               const transcript = event.results[0][0].transcript;
               console.log("Recognized Speech:", transcript);
 
