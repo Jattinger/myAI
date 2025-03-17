@@ -42,10 +42,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           recognitionInstance.onstart = () => setIsListening(true);
           recognitionInstance.onend = () => setIsListening(false);
 
+          // ✅ Fix: Ensure speech is stored in the input field
           recognitionInstance.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
+            console.log("Recognized Speech:", transcript); // Debugging output
+
             if (inputRef.current) {
-              inputRef.current.value = transcript; // Set recognized speech as input
+              inputRef.current.value = transcript; // ✅ Store speech data in input field
+              inputRef.current.dispatchEvent(new Event("input", { bubbles: true })); // ✅ Ensure React recognizes the input change
             }
           };
 
@@ -62,7 +66,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       }
     };
 
-    // ✅ Make sure the function correctly RETURNS JSX
     return (
       <div className="relative flex items-center w-full">
         {/* Input Field */}
@@ -98,4 +101,4 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = "Input";
 
-export { Input };
+export { Input 
