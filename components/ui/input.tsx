@@ -1,9 +1,12 @@
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+// ✅ Import SpeechRecognition types from `@types/dom-speech-recognition`
+import type { SpeechRecognition, SpeechRecognitionEvent } from "dom-speech-recognition";
+
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-// ✅ Fix: Define `SpeechRecognition` properly for TypeScript
+// ✅ Fix: Declare SpeechRecognition correctly
 declare global {
   interface Window {
     SpeechRecognition?: new () => SpeechRecognition;
