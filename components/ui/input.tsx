@@ -3,11 +3,11 @@ import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-// ✅ Fix: Define `SpeechRecognition` correctly for TypeScript
+// ✅ Fix: Declare `SpeechRecognition` without circular reference
 declare global {
   interface Window {
-    SpeechRecognition?: typeof window.SpeechRecognition;
-    webkitSpeechRecognition?: typeof window.webkitSpeechRecognition;
+    SpeechRecognition?: any;
+    webkitSpeechRecognition?: any;
   }
 }
 
@@ -15,7 +15,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     const [isListening, setIsListening] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement | null>(null);
-    const recognitionRef = React.useRef<SpeechRecognition | null>(null);
+    const recognitionRef = React.useRef<any | null>(null);
 
     React.useEffect(() => {
       if (typeof window !== "undefined") {
