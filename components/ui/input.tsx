@@ -55,7 +55,8 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             }
           };
 
-          recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+          // ✅ Fix: Use `Event` instead of `SpeechRecognitionErrorEvent`
+          recognition.onerror = (event: Event) => {
             console.error("❌ Speech Recognition Error:", event);
           };
 
