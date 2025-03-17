@@ -10,79 +10,63 @@ declare global {
   }
 }
 
-interface SpeechRecognitionInstance extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  onstart: (() => void) | null;
-  onend: (() => void) | null;
-  onresult: ((event: SpeechRecognitionEvent) => void) | null;
-}
-
-// ✅ Fix: Explicitly define `SpeechRecognitionEvent` results
-interface SpeechRecognitionEvent {
-  results: SpeechRecognitionResultList;
-}
-
-// ✅ Fix: Explicitly define `SpeechRecognitionResultList`
-interface SpeechRecognitionResultList {
-  length: number;
-  [index: number]: SpeechRecognitionResult;
-}
-
-// ✅ Fix: Explicitly define `SpeechRecognitionResult`
-interface SpeechRecognitionResult {
-  length: number;
-  [index: number]: SpeechRecognitionAlternative;
-}
-
-// ✅ Fix: Explicitly define `SpeechRecognitionAlternative`
-interface SpeechRecognitionAlternative {
-  transcript: string;
-}
-
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, ...props }, ref) => {
     const [isListening, setIsListening] = React.useState(false);
     const inputRef = React.useRef<HTMLInputElement | null>(null);
-    const recognitionRef = React.useRef<SpeechRecognitionInstance | null>(null);
+    const recognitionRef = React.useRef<any>(null);
 
     React.useEffect(() => {
       if (typeof window !== "undefined") {
         const SpeechRecognition =
           window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
-          const recognitionInstance: SpeechRecognitionInstance = new SpeechRecognition();
-          recognitionInstance.continuous = false;
-          recognitionInstance.lang = "en-US";
-          recognitionInstance.interimResults = false;
+          const recognition = new SpeechRecognition();
+          recognition.continuous = false; // 🔥 Allow processing each phrase separately
+          recognition.lang = "en-US";
+          recognition.interimResults = true; // 🔥 Capture words while speaking instead of waiting for silence
+          recognition.maxAlternatives = 1; // 🔥 Only take the best match
 
-          recognitionInstance.onstart = () => setIsListening(true);
-          recognitionInstance.onend = () => setIsListening(false);
+          recognition.onstart = () => {
+            setIsListening(true);
+            console.log("🎤 Voice recording started...");
+          };
 
-          // ✅ Fix: TypeScript now properly recognizes event.results.length
-          recognitionInstance.onresult = (event) => {
-            console.log("Speech Event Triggered", event);
-            if (event.results?.length > 0) {
-              const transcript = event.results[0][0].transcript;
-              console.log("Recognized Speech:", transcript);
+          recognition.onend = () => {
+            setIsListening(false);
+            console.log("🛑 Voice recording ended.");
+            // 🔥 Restart recognition to keep it active
+            setTimeout(() => {
+              if (recognitionRef.current) {
+                recognitionRef.current.start();
+              }
+            }, 500);
+          };
 
+          recognition.onresult = (event) => {
+            console.log("🎤 Speech Event Triggered:", event);
+            if (event.results.length > 0) {
+              const transcript = event.results[event.results.length - 1][0].transcript.trim();
+              console.log("✅ Recognized Speech:", transcript);
               if (inputRef.current) {
-                inputRef.current.value = transcript; // ✅ Store speech data in input field
-                inputRef.current.dispatchEvent(new Event("input", { bubbles: true })); // ✅ Ensure React detects change
+                inputRef.current.value = transcript;
+                inputRef.current.dispatchEvent(new Event("input", { bubbles: true }));
               }
             }
           };
 
-          recognitionRef.current = recognitionInstance;
+          recognition.onerror = (event) => {
+            console.error("❌ Speech Recognition Error:", event.error);
+          };
+
+          recognitionRef.current = recognition;
         }
       }
     }, []);
 
     const handleVoiceInput = () => {
       if (recognitionRef.current) {
+        console.log("🎤 Starting voice recognition...");
         recognitionRef.current.start();
       } else {
         alert("Speech recognition is not supported in this browser.");
