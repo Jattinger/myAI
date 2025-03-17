@@ -3,10 +3,11 @@ import { cn } from "@/lib/utils";
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
+// ✅ Fix: Define `SpeechRecognition` properly for TypeScript
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
+    SpeechRecognition?: new () => SpeechRecognition;
+    webkitSpeechRecognition?: new () => SpeechRecognition;
   }
 }
 
@@ -37,7 +38,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             console.log("🛑 Voice recording ended.");
           };
 
-          // ✅ Fix: Explicitly define event type as SpeechRecognitionEvent
           recognition.onresult = (event: SpeechRecognitionEvent) => {
             console.log("🎤 Speech Event Triggered:", event);
             if (event.results.length > 0) {
